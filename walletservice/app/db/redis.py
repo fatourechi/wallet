@@ -16,8 +16,8 @@ class RedisClient:
             return {
                 "amount": float(code_info[b'amount'].decode("utf-8")) if code_info.get(b'amount') else 0,
                 "limit": int(code_info[b'limit'].decode("utf-8")) if code_info.get(b'limit') else 0,
-                "start_time": datetime.fromtimestamp(code_info[b'start_time'].decode("utf-8")) if code_info.get(b'start_time') else None,
-                "expire_time": datetime.fromtimestamp(code_info[b'expire_time'].decode("utf-8")) if code_info.get(b'expire_time') else None,
+                "start_time": datetime.fromtimestamp(float(code_info[b'start_time'].decode("utf-8"))) if code_info.get(b'start_time') else None,
+                "expire_time": datetime.fromtimestamp(float(code_info[b'expire_time'].decode("utf-8"))) if code_info.get(b'expire_time') else None,
             }
         return None
 
