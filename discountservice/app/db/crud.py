@@ -1,14 +1,18 @@
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 from . import models
 from . import schemas
 
 
 def create_code(db: Session, code: schemas.CodeCreate):
-    db_code = models.Code(**code.dict())
-    db.add(db_code)
-    db.commit()
-    db.refresh(db_code)
-    return db_code
+    try:
+        db_code = models.Code(**code.dict())
+        db.add(db_code)
+        db.commit()
+        db.refresh(db_code)
+        return db_code
+    except IntegrityError:
+        raise(e)
 
 def get_codes(db: Session):
     return db.query(models.Code).all()
