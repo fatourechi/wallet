@@ -23,7 +23,10 @@ def get_db():
 # CRUD endpoints
 @app.post("/users/", response_model=schemas.User)
 def create_new_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
-    user = create_user(db, user)
+    try:
+        user = create_user(db, user)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail="mobile number is duplicated")
 
     wallet_data = {"user_id": user.id, "balance": 0}
     wallet_creation_response = requests.post("http://walletservice/wallets/", json=wallet_data)

@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 from . import models, schemas
 
 
@@ -12,11 +13,14 @@ def get_users(db: Session, skip: int = 0, limit: int = 100):
     return db.query(models.User).offset(skip).limit(limit).all()
 
 def create_user(db: Session, user: schemas.UserCreate):
-    db_user = models.User(mobile_number=user.mobile_number, name=user.name)
-    db.add(db_user)
-    db.commit()
-    db.refresh(db_user)
-    return db_user
+    try:
+        db_user = models.User(mobile_number=user.mobile_number, name=user.name)
+        db.add(db_user)
+        db.commit()
+        db.refresh(db_user)
+        return db_user
+    except IntegrityError as e:
+        raise(e)
 
 def update_user_by_user_id(db: Session, user_id: int, user: schemas.UserUpdate):
     db_user = db.query(models.User).filter(models.User.id == user_id).first()
