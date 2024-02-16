@@ -23,8 +23,12 @@ def get_db():
 
 # CRUD endpoints
 @app.post("/codes/", response_model=schemas.Code)
-def create_new_user(code: schemas.CodeCreate, db: Session = Depends(get_db)):
-    db_code = create_code(db, code)
+def create_new_code(code: schemas.CodeCreate, db: Session = Depends(get_db)):
+    try:
+        db_code = create_code(db, code)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Code value {code.value} is already existed")
+
     code_info = {
         "amount": db_code.amount,
         "limit": db_code.limit
