@@ -1,0 +1,85 @@
+version: "3"
+services:
+  userservice:
+    build: ./userservice
+    ports:
+      - "8001:80"
+    environment:
+      POSTGRES_SERVER: database  # Name of the database service defined in the Docker Compose file
+      POSTGRES_DB: dbname
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: secret
+    depends_on:
+      database:
+        condition: service_healthy  # Wait for the database service to be healthy
+    volumes:
+      - ./userservice/app:/app
+
+  walletservice:
+    build: ./walletservice
+    ports:
+        - "8002:80"
+    environment:
+      POSTGRES_SERVER: database  # Name of the database service defined in the Docker Compose file
+      POSTGRES_DB: dbname
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: secret
+      MONGO_SERVER: mongo
+      REDIS_SERVER: redis
+      REDIS_PORT: 6379
+    depends_on:
+      - userservice
+    volumes:
+      - ./walletservice/app:/app
+
+  transactionservice:
+    build: ./transactionservice
+    ports:
+      - "8003:80"
+    environment:
+      MONGO_SERVER: mongo
+    depends_on:
+      - mongo
+    volumes:
+      - ./transactionservice/app:/app
+
+  discountservice:
+    build: ./discountservice
+    ports:
+        - "8004:80"
+    environment:
+      POSTGRES_SERVER: database  # Name of the database service defined in the Docker Compose file
+      POSTGRES_DB: dbname
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: secret
+      MONGO_SERVER: mongo
+      REDIS_SERVER: redis
+      REDIS_PORT: 6379
+    depends_on:
+      - userservice
+    volumes:
+      - ./discountservice/app:/app
+
+  database:
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: dbname
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: secret
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -q -d dbname -U postgres"]  # Health check command to verify PostgreSQL connection
+      interval: 10s  # Interval between health checks
+      timeout: 5s    # Timeout for each health check
+      retries: 5     # Number of retries before considering the container unhealthy
+
+  mongo:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
