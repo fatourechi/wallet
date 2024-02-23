@@ -11,5 +11,5 @@ class Code(Base):
     value = Column(String, unique=True, index=True, nullable=False)
     amount = Column(Float, nullable=False)
     limit = Column(Integer, nullable=False)
-    start_time = Column(DateTime, default=datetime.utcnow)
+    start_time = Column(DateTime, default=datetime.now)
     expire_time = Column(DateTime)
