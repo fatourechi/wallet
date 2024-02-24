@@ -17,7 +17,7 @@ class WalletService:
             return None, "user not found"
         
         try:
-            wallet = self.wallet_repository.create_wallet(wallet.model_dump())
+            wallet = self.wallet_repository.create_wallet(wallet)
             return wallet, ""
         except Exception as e:
             return None, str(e)
@@ -58,10 +58,13 @@ class WalletService:
             return None, "Code has been expired"
         
         try:
-            db_wallet = self.wallet_repository.deposit_balance_by_user_id(user_id=user.get("id"),
+            db_wallet = self.wallet_repository.deposit_balance_by_user_id(user_id=user.id,
                                                                       amount=code_info.get("amount"))
         except Exception as e:
             return None, str(e)
         self.redis_handler.decrease_code_limit(deposit.code)
-        log_deposit_transaction_request(user_id=user.get("id"), amount=code_info.get("amount"))
+        log_deposit_transaction_request(user_id=user.id, 
+                                        amount=code_info.get("amount"),
+                                        code=deposit.code,
+                                        mobile_number=deposit.mobile_number)
         return db_wallet, ""

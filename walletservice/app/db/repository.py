@@ -1,19 +1,20 @@
 from .models import User, Wallet
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
-
+from db import schemas
 
 class WalletRepository:
     def __init__(self, db_session: Session) -> None:
         self.db = db_session
 
-    def create_wallet(self, wallet: Wallet):
+    def create_wallet(self, wallet: schemas.Wallet):
         try:
-            self.db.add(wallet)
+            db_wallet = Wallet(**wallet.model_dump())
+            self.db.add(db_wallet)
             self.db.commit()
-            self.db.refresh(wallet)
-            return wallet
-        except IntegrityError:
+            self.db.refresh(db_wallet)
+            return db_wallet
+        except IntegrityError as e:
             self.db.rollback()
             raise ValueError("Failed to create wallet: Wallet with for this user already exists")
         
