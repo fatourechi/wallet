@@ -21,10 +21,12 @@ def get_user_by_mobile_number_request(mobile_number: str):
     except Exception as e:
         print(str(e))
 
-def log_deposit_transaction_request(user_id: int, amount: float):
+def log_deposit_transaction_request(user_id: int, code: str, mobile_number: str, amount: float):
     try:
         data = {
             "user_id": user_id,
+            "code": code,
+            "mobile_number": mobile_number,
             "amount": amount,
         }
         make_request(f"http://transactionservice/transactions", "POST", json=data)

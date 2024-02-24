@@ -5,6 +5,8 @@ from typing import Optional
 class Transaction(BaseModel):
     user_id: int
     amount: float
+    code: str
+    mobile_number: str
 
 class GetTransaction(BaseModel):
     user_id: int

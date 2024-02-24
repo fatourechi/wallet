@@ -8,17 +8,21 @@ class MongoLogger:
         self.db = self.client["transaction_logs"]
         self.collection = self.db['transactions']
 
-    async def log_deposit_transaction(self, user_id: int, amount: float, timestamp: datetime):
+    async def log_deposit_transaction(self, user_id: int, mobile_number: str, code: str, amount: float, timestamp: datetime):
         transaction_data = {
             'user_id': user_id,
+            'code': code,
+            'mobile_number': mobile_number,
             'amount': amount,
             'timestamp': timestamp
         }
-        await self.collection.insert_one(transaction_data)
+        self.collection.insert_one(transaction_data)
     
     def __parse_transaction(self, document):
         return {
             "user_id": document['user_id'],
+            "code": document['code'],
+            "mobile_number": document['mobile_number'],
             "amount": document['amount'],
             "timestamp": document['timestamp']
         }
@@ -30,7 +34,7 @@ class MongoLogger:
         if limit < 0:
             return []
         
-        transactions = await self.collection.find().sort("timestamp", -1).skip(skip).limit(limit)
+        transactions = self.collection.find().sort("timestamp", -1).skip(skip).limit(limit)
         if transactions:
             return self.__parse_transactions(transactions)
         else:
@@ -48,8 +52,15 @@ class MongoLogger:
                 timestamp_query["$lte"] = end_date
             query["timestamp"] = timestamp_query
 
-        transactions = await self.collection.find(query)
+        transactions = self.collection.find(query)
 
+        if transactions:
+            return self.__parse_transactions(transactions)
+        else:
+            return []
+
+    async def get_transactions_by_code(self, code: str):
+        transactions = self.collection.find({"code": code})
         if transactions:
             return self.__parse_transactions(transactions)
         else:

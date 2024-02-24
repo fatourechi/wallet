@@ -24,3 +24,9 @@ async def get_transactions_by_filter(get_transaction: schemas.GetTransaction):
                                                               start_date=get_transaction.start_date,
                                                               end_date=get_transaction.end_date)
     return {"transactions": transactions}
+
+@app.get("/transactions/code")
+async def get_transactions_by_code(code: str):
+    transactions = await transaction_service.get_transactions_by_code(code=code)
+    return {"transactions": transactions}
+
