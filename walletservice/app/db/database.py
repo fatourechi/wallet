@@ -10,9 +10,6 @@ POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD")
 
 SQLALCHEMY_DATABASE_URL = f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_SERVER}/{POSTGRES_DB}"
 
-
-# SQLALCHEMY_DATABASE_URL = "postgresql://user:secret@localhost:5432/wallet"
-
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
