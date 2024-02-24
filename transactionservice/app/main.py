@@ -1,8 +1,9 @@
 # userservice/app/main.py
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Query
 from db import schemas
 from db.service import TransactionService
+from datetime import datetime
 
 app = FastAPI()
 
@@ -19,10 +20,12 @@ async def get_all_transactions(skip: int = 0, limit: int = 10):
     return {"transactions": transactions}
 
 @app.get("/transactions/user")
-async def get_transactions_by_filter(get_transaction: schemas.GetTransaction):
-    transactions = await transaction_service.get_transactions(user_id=get_transaction.user_id,
-                                                              start_date=get_transaction.start_date,
-                                                              end_date=get_transaction.end_date)
+async def get_transactions_by_filter(user_id: int = Query(..., gt=0),
+                                     start_date: datetime = Query(None),
+                                     end_date: datetime = Query(None)):
+    transactions = await transaction_service.get_transactions(user_id=user_id,
+                                                              start_date=start_date,
+                                                              end_date=end_date)
     return {"transactions": transactions}
 
 @app.get("/transactions/code")
