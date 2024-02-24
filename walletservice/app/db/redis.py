@@ -7,6 +7,22 @@ class RedisClient:
     def __init__(self, host, port):
         self.redis_client = redis.Redis(host=host, port=port)
 
+    def acquire_lock(self, resource_identifier: str):
+        lock_key = f"LOCK:{resource_identifier}"
+        success = self.redis_client.setnx(lock_key, "locked")
+        if success:
+            self.redis_client.expire(lock_key, 30)
+            return True
+        else:
+            return False
+
+    def release_lock(self, resource_identifier: str):
+        lock_key = f"LOCK:{resource_identifier}"
+        if self.redis_client.delete(lock_key):
+            return True
+        else:
+            raise RuntimeError('Failed to release lock')
+        
     def set_code_info(self, code_value: str, info: dict):
         self.redis_client.hmset(f"CODE||{code_value}", info)
 

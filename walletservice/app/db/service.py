@@ -39,32 +39,41 @@ class WalletService:
         if not user:
             return None, "user not found"
         
+        if not self.redis_handler.acquire_lock(f"DEPOSIT||{deposit.code}"):
+            return None, "failed to acquire reids lock"
+        
         code_info = self.redis_handler.get_code_info(deposit.code)
 
         if not code_info:
+            self.redis_handler.release_lock(f"DEPOSIT||{deposit.code}")
             return None, "user does not existed"
         
         if not code_info.get("limit"):
+            self.redis_handler.release_lock(f"DEPOSIT||{deposit.code}")
             return None, "Code limit reachs it's limit"
         
         current_time = datetime.now()
 
         start_time = code_info.get('start_time')
         if start_time and not (current_time > start_time):
+            self.redis_handler.release_lock(f"DEPOSIT||{deposit.code}")
             return None, "Code is not yet valid"
         
         expire_time = code_info.get('expire_time')
         if expire_time and not (current_time < expire_time):
+            self.redis_handler.release_lock(f"DEPOSIT||{deposit.code}")
             return None, "Code has been expired"
         
         try:
             db_wallet = self.wallet_repository.deposit_balance_by_user_id(user_id=user.id,
                                                                       amount=code_info.get("amount"))
         except Exception as e:
+            self.redis_handler.release_lock(f"DEPOSIT||{deposit.code}")
             return None, str(e)
         self.redis_handler.decrease_code_limit(deposit.code)
         log_deposit_transaction_request(user_id=user.id, 
                                         amount=code_info.get("amount"),
                                         code=deposit.code,
                                         mobile_number=deposit.mobile_number)
+        self.redis_handler.release_lock(f"DEPOSIT||{deposit.code}")
         return db_wallet, ""
